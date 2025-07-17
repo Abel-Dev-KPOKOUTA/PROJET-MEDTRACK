@@ -1,0 +1,242 @@
+{% extends 'accounts/base.html' %}
+{% block title %} Inscription Patient | MedTrack {% endblock title %}
+
+{% block content %}
+<div class="signup-container">
+  <div class="signup-glass-card">
+    <div class="signup-header">
+      <div class="logo-wrapper">
+        <img src="https://img.icons8.com/fluency/96/medical-doctor.png" alt="MedTrack" class="logo-pulse">
+        <h1>Créer un compte</h1>
+      </div>
+      <p class="subtitle">Rejoignez notre communauté médicale</p>
+      <!-- Barre de progression moderne -->
+      <div class="progress-track">
+        <div class="progress-steps">
+          <div class="step active" data-step="1"></div>
+          <div class="step" data-step="2"></div>
+          <div class="step" data-step="3"></div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 33%"></div>
+        </div>
+      </div>
+    </div>
+
+    {% if messages %}
+      <ul class="field-error">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <form method="post" action="{% url 'accounts:patient_signup' %}" class="neon-form" id="signupForm">
+      {% csrf_token %}
+      <!-- Étape 1 - Identifiants -->
+      <div class="form-step active" data-step="1">
+        <div class="input-group">
+          <i class="fas fa-user icon"></i>
+          <input type="text" name="first_name" placeholder="Prénom" required>
+          <span class="focus-border"></span>
+        </div>
+        <div class="input-group">
+          <i class="fas fa-user icon"></i>
+          <input type="text" name="last_name" placeholder="Nom" required>
+          <span class="focus-border"></span>
+        </div>
+        <div class="input-group">
+          <i class="fas fa-user-md icon"></i>
+          <input type="text" name="username" placeholder="Nom d'utilisateur" required>
+          <span class="focus-border"></span>
+        </div>
+        <div class="input-group">
+          <i class="fas fa-envelope icon"></i>
+          <input type="email" name="email" placeholder="Email professionnel" required>
+          <span class="focus-border"></span>
+        </div>
+        <div class="step-buttons">
+          <button type="button" class="next-btn btn-glow">
+            Suivant <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+        <div style="text-align:center; margin-top: 15px;">
+          <a href="{% url 'accounts:accueil' %}" class="auth-link">← Retour à l'accueil</a>
+        </div>
+      </div>
+
+      <!-- Étape 2 - Profil -->
+      <div class="form-step" data-step="2">
+        <div class="input-group">
+          <i class="fas fa-phone icon"></i>
+          <input type="tel" name="phone" placeholder="Téléphone (+225...)" pattern="\+225\d{8,10}" required>
+          <span class="focus-border"></span>
+        </div>
+        <div class="input-group">
+          <i class="fas fa-calendar-alt icon"></i>
+          <input type="date" name="date_of_birth" placeholder="Date de naissance">
+          <span class="focus-border"></span>
+        </div>
+        <div class="gender-select">
+          <label class="gender-option">
+            <input type="radio" name="gender" value="M" checked>
+            <div class="gender-card">
+              <i class="fas fa-male"></i>
+              <span>Homme</span>
+            </div>
+          </label>
+          <label class="gender-option">
+            <input type="radio" name="gender" value="F">
+            <div class="gender-card">
+              <i class="fas fa-female"></i>
+              <span>Femme</span>
+            </div>
+          </label>
+          <label class="gender-option">
+            <input type="radio" name="gender" value="O">
+            <div class="gender-card">
+              <i class="fas fa-genderless"></i>
+              <span>Autre</span>
+            </div>
+          </label>
+        </div>
+        <div class="input-group">
+          <i class="fas fa-map-marker-alt icon"></i>
+          <textarea name="address" rows="3" placeholder="Adresse postale"></textarea>
+          <span class="focus-border"></span>
+        </div>
+        <div class="input-group">
+          <i class="fas fa-notes-medical icon"></i>
+          <textarea name="medical_history" rows="4" placeholder="Antécédents médicaux"></textarea>
+          <span class="focus-border"></span>
+        </div>
+        <div class="step-buttons">
+          <button type="button" class="prev-btn btn-ghost">
+            <i class="fas fa-arrow-left"></i> Retour
+          </button>
+          <button type="button" class="next-btn btn-glow">
+            Suivant <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Étape 3 - Mot de passe -->
+      <div class="form-step" data-step="3">
+        <div class="input-group">
+          <i class="fas fa-lock icon"></i>
+          <input type="password" name="password1" id="password1" placeholder="Créez un mot de passe" required>
+          <i class="fas fa-eye toggle-pwd" onclick="togglePassword('password1')"></i>
+          <span class="focus-border"></span>
+        </div>
+        <div class="password-strength">
+          <div class="strength-meter">
+            <div class="strength-level weak"></div>
+          </div>
+          <span class="strength-text">Faible</span>
+        </div>
+        <div class="input-group">
+          <i class="fas fa-check-circle icon"></i>
+          <input type="password" name="password2" placeholder="Confirmez le mot de passe" required>
+          <span class="focus-border"></span>
+        </div>
+        <div class="form-footer">
+          <label class="checkbox-container">
+            <input type="checkbox" required>
+            <span class="checkmark"></span>
+            J'accepte les <a href="#">conditions d'utilisation</a>
+          </label>
+          <div class="step-buttons">
+            <button type="button" class="prev-btn btn-ghost">
+              <i class="fas fa-arrow-left"></i> Retour
+            </button>
+            <button type="submit" class="submit-btn btn-glow-pulse">
+              <i class="fas fa-user-plus"></i> Finaliser l'inscription
+            </button>
+          </div>
+          <p class="login-link">
+            Déjà membre ? <a href="{% url 'accounts:login_user' %}">Connectez-vous</a>
+          </p>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+let currentStep = 1;
+const totalSteps = 3;
+
+function showStep(step) {
+  document.querySelectorAll('.form-step').forEach(el => {
+    el.classList.remove('active');
+  });
+  document.querySelector(`.form-step[data-step="${step}"]`).classList.add('active');
+  document.querySelectorAll('.step').forEach((el, index) => {
+    if (index < step) {
+      el.classList.add('active');
+    } else {
+      el.classList.remove('active');
+    }
+  });
+  const progressPercent = ((step - 1) / (totalSteps - 1)) * 100;
+  document.querySelector('.progress-fill').style.width = `${progressPercent}%`;
+}
+
+document.querySelectorAll('.next-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (currentStep < totalSteps) {
+      currentStep++;
+      showStep(currentStep);
+    }
+  });
+});
+
+document.querySelectorAll('.prev-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (currentStep > 1) {
+      currentStep--;
+      showStep(currentStep);
+    }
+  });
+});
+
+function togglePassword(id) {
+  const input = document.getElementById(id);
+  const icon = input.nextElementSibling;
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.classList.replace('fa-eye', 'fa-eye-slash');
+  } else {
+    input.type = 'password';
+    icon.classList.replace('fa-eye-slash', 'fa-eye');
+  }
+}
+
+document.getElementById('password1').addEventListener('input', function() {
+  const password = this.value;
+  const strengthMeter = document.querySelector('.strength-level');
+  const strengthText = document.querySelector('.strength-text');
+  let strength = 0;
+  if (password.length >= 8) strength++;
+  if (/[A-Z]/.test(password)) strength++;
+  if (/[0-9]/.test(password)) strength++;
+  if (/[^A-Za-z0-9]/.test(password)) strength++;
+  strengthMeter.className = 'strength-level';
+  if (password.length === 0) {
+    strengthText.textContent = '';
+    strengthMeter.style.width = '0%';
+  } else if (strength <= 1) {
+    strengthText.textContent = 'Faible';
+    strengthMeter.classList.add('weak');
+  } else if (strength <= 2) {
+    strengthText.textContent = 'Moyen';
+    strengthMeter.classList.add('medium');
+  } else {
+    strengthText.textContent = 'Fort';
+    strengthMeter.classList.add('strong');
+  }
+});
+
+showStep(1);
+</script>
+{% endblock content %}

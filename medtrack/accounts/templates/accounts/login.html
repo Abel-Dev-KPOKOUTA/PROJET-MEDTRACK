@@ -1,0 +1,128 @@
+{% extends 'accounts/base.html' %}
+{% block title %} Connexion à MedTrack {% endblock title %}
+
+{% block content %}
+  {# Message flash coloré, centré et responsive #}
+  {% if messages %}
+    <ul class="messages" id="flash-messages" style="position:fixed;top:40px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;justify-content:center;align-items:center;width:90vw;max-width:400px;margin:0 auto;padding:0;list-style:none;">
+      {% for message in messages %}
+        <li style="background:linear-gradient(90deg,#00c6ff 0%,#0072ff 100%);color:#fff;font-weight:500;font-size:1.1em;border-radius:12px;box-shadow:0 4px 24px rgba(0,114,255,0.13);padding:18px 28px;margin:0 auto;text-align:center;letter-spacing:0.5px;width:100%;">{{ message }}</li>
+      {% endfor %}
+    </ul>
+    <script>
+      setTimeout(function() {
+        const msg = document.getElementById('flash-messages');
+        if (msg) msg.style.display = 'none';
+      }, 4000);
+    </script>
+  {% endif %}
+
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <img src="https://img.icons8.com/fluency/96/medical-doctor.png" alt="MedTrack Logo" class="auth-logo">
+        <h2>Connexion MedTrack</h2>
+        <p>Accédez à votre espace sécurisé</p>
+      </div>
+      
+      <form method="post" class="auth-form" id="loginForm">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+        <div class="alert-error">
+          <i class="fas fa-exclamation-circle"></i>
+          <span>Identifiant ou mot de passe incorrect</span>
+        </div>
+        {% endif %}
+
+        <div class="form-group">
+          <div class="input-with-icon">
+            <i class="fas fa-user"></i>
+            <input type="text" name="username" id="id_username" class="form-control" placeholder="Nom d'utilisateur" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="input-with-icon">
+            <i class="fas fa-lock"></i>
+            <input type="password" name="password" id="id_password" class="form-control" placeholder="Mot de passe" required>
+          </div>
+        </div>
+
+        <div class="form-options">
+          <div class="remember-me">
+            <input type="checkbox" id="remember" name="remember">
+            <label for="remember">Se souvenir de moi</label>
+          </div>
+          <a href="#" class="forgot-password">Mot de passe oublié ?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <span class="btn-text">Se connecter</span>
+          <div class="btn-loader">
+            <div class="loader-spinner"></div>
+          </div>
+        </button>
+
+        <div style="text-align:center; margin-top: 15px;">
+          <a href="{% url 'accounts:accueil' %}" class="auth-link">← Retour à l'accueil</a>
+        </div>
+
+        <div class="auth-footer">
+          <p>Nouveau sur MedTrack ? <a href="{% url 'accounts:patient_signup' %}" class="auth-link">Créer un compte</a></p>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <style>
+    @media (max-width: 600px) {
+      .messages#flash-messages {
+        top: 20px;
+        max-width: 95vw;
+      }
+      .messages#flash-messages li {
+        font-size: 1em;
+        padding: 12px 10px;
+      }
+    }
+  </style>
+
+  <script>
+    // Toggle password visibility
+    function togglePassword(fieldId) {
+      const field = document.getElementById(fieldId);
+      const icon = field.nextElementSibling;
+      if (field.type === 'password') {
+        field.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+      } else {
+        field.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+      }
+    }
+
+    // Form submission loader
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+      loginForm.addEventListener('submit', function(e) {
+        const submitBtn = this.querySelector('.btn-primary');
+        submitBtn.querySelector('.btn-text').style.opacity = '0';
+        submitBtn.querySelector('.btn-loader').style.opacity = '1';
+        
+        // Simulate loading (remove in production)
+        setTimeout(() => {
+          submitBtn.querySelector('.btn-text').style.opacity = '1';
+          submitBtn.querySelector('.btn-loader').style.opacity = '0';
+        }, 4000);
+      });
+    }
+
+    // Auto-focus first field
+    document.addEventListener('DOMContentLoaded', () => {
+      const firstInput = document.querySelector('input[type="text"]');
+      if (firstInput) firstInput.focus();
+    });
+  </script>
+
+{% endblock content %}

@@ -1,0 +1,255 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="MedTrack - Votre plateforme de suivi médical sécurisée. Gestion des traitements, partage avec les professionnels de santé et analyse de données.">
+    <title>MedTrack - Suivi médical intelligent | Plateforme e-santé</title>
+    <link rel="stylesheet" href="{% static 'accounts/css/style_accueil.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+      /* Message flash stylé et responsive */
+      .messages#flash-messages {
+        position: fixed;
+        top: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 90vw;
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 0;
+        list-style: none;
+      }
+      .messages#flash-messages li {
+        background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+        color: #fff;
+        font-weight: 500;
+        font-size: 1.1em;
+        border-radius: 12px;
+        box-shadow: 0 4px 24px rgba(0,114,255,0.13);
+        padding: 18px 28px;
+        margin: 0 auto;
+        text-align: center;
+        letter-spacing: 0.5px;
+        animation: fadeInScale 0.5s;
+        width: 100%;
+    }
+      @keyframes fadeInScale {
+        from { opacity: 0; transform: scale(0.9);}
+        to   { opacity: 1; transform: scale(1);}
+      }
+      @media (max-width: 600px) {
+        .messages#flash-messages {
+          top: 20px;
+          max-width: 95vw;
+        }
+        .messages#flash-messages li {
+          font-size: 1em;
+          padding: 12px 10px;
+        }
+      }
+    </style>
+</head>
+<body>
+    {# Affichage du message de déconnexion temporaire #}
+    {% if messages %}
+      <ul class="messages" id="flash-messages">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+      <script>
+        setTimeout(function() {
+          const msg = document.getElementById('flash-messages');
+          if (msg) msg.style.display = 'none';
+        }, 4000);
+      </script>
+    {% endif %}
+
+    <header>
+        <div class="logo-container">
+            <div class="logo">🩺 MedTrack</div>
+            <span class="tagline">Votre santé, simplifiée</span>
+        </div>
+        <nav>
+            <div class="menu-toggle" onclick="toggleMenu()" aria-label="Menu principal" aria-expanded="false">☰</div>
+            <div class="nav-links" id="navLinks">
+                <a href="#features">Fonctionnalités</a>
+                <a href="#about">À propos</a>
+                <a href="#security">Sécurité</a>
+                <a href="{% url 'accounts:login_user' %}" class="connect-btn">Se connecter</a>
+                <a href="{% url 'accounts:patient_signup' %}" class="btn btn-primary">Créer un compte</a>
+            </div>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1>Prenez le contrôle de votre santé</h1>
+                <p class="subtitle">Une plateforme sécurisée pour gérer vos traitements, partager vos données avec vos médecins et suivre votre évolution.</p>
+                <div class="actions">
+                    <a href="{% url 'accounts:login_user' %}" class="btn btn-primary btn-large">Commencer gratuitement</a>
+                    <a href="{% url 'accounts:demonstration' %}" class="btn btn-secondary btn-large">Voir la démo</a>
+                </div>
+                <div class="trust-badges">
+                    <div class="badge"><i class="fas fa-shield-alt"></i> Certifié HIPAA</div>
+                    <div class="badge"><i class="fas fa-user-md"></i> Recommandé par des professionnels</div>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="{% static 'accounts/img/WhatsApp Image 2025-06-30 à 10.48.27_102f1db5.jpg' %}" alt="Interface MedTrack" loading="lazy">
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="section-header">
+            <h2>Votre compagnon santé complet</h2>
+            <p class="section-subtitle">Découvrez comment MedTrack révolutionne votre suivi médical</p>
+        </div>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-pills"></i></div>
+                <h3>Gestion des traitements</h3>
+                <p>Alertes personnalisées, interactions médicamenteuses et suivi de l'observance.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                <h3>Analyses avancées</h3>
+                <p>Visualisation claire de vos paramètres de santé avec tendances et alertes.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-file-medical"></i></div>
+                <h3>Dossier centralisé</h3>
+                <p>Tous vos documents médicaux organisés et accessibles en un clic.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-calendar-check"></i></div>
+                <h3>Rendez-vous intelligents</h3>
+                <p>Synchronisation avec l'agenda et rappels pour vos consultations.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-user-md"></i></div>
+                <h3>Partage sécurisé</h3>
+                <p>Transmettez vos données à vos médecins en toute confidentialité.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
+                <h3>Mobile friendly</h3>
+                <p>Accédez à vos données depuis votre smartphone, tablette ou ordinateur.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="testimonials">
+        <div class="section-header">
+            <h2>Ils nous font confiance</h2>
+            <p class="section-subtitle">Des patients et professionnels satisfaits</p>
+        </div>
+        <div class="testimonial-carousel">
+            <div class="testimonial">
+                <div class="quote">"MedTrack a transformé ma gestion du diabète. Tout est organisé et mon endocrinologue peut suivre mes données à distance."</div>
+                <div class="author">
+                    <div class="name">Marie D.</div>
+                    <div class="role">Patient</div>
+                </div>
+            </div>
+            <div class="testimonial">
+                <div class="quote">"En tant que médecin généraliste, je recommande MedTrack à mes patients pour un meilleur suivi entre les consultations."</div>
+                <div class="author">
+                    <div class="name">Dr. Laurent G.</div>
+                    <div class="role">Médecin généraliste</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta-section">
+        <div class="cta-content">
+            <h2>Prêt à prendre en main votre santé ?</h2>
+            <p>Rejoignez des milliers d'utilisateurs satisfaits</p>
+            <div class="cta-actions">
+                <a href="{% url 'accounts:patient_signup' %}" class="btn btn-primary btn-large">S'inscrire gratuitement</a>
+                <a href="{% url 'accounts:contact' %}" class="btn btn-outline">Nous contacter</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>MedTrack</h3>
+                <p>Votre partenaire santé numérique depuis 2025.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Navigation</h3>
+                <ul>
+                    <li><a href="#features">Fonctionnalités</a></li>
+                    <li><a href="#security">Sécurité</a></li>
+                    <li><a href="#about">À propos</a></li>
+                    <li><a href="#pricing">Tarifs</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Légal</h3>
+                <ul>
+                    <li><a href="#">Confidentialité</a></li>
+                    <li><a href="#">CGU</a></li>
+                    <li><a href="#">Mentions légales</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact</h3>
+                <ul>
+                    <li><i class="fas fa-envelope"></i>kpokoutaabel@gmail.com</li>
+                    <li><i class="fas fa-phone"></i> +229 01 55 69 79 37</li>
+                    <li><i class="fas fa-map-marker-alt"></i> Abomey, Bénin</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 MedTrack. Tous droits réservés. Certification HAS n°12345</p>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMenu() {
+            const nav = document.getElementById('navLinks');
+            const toggleBtn = document.querySelector('.menu-toggle');
+            const isExpanded = nav.classList.toggle('active');
+            toggleBtn.classList.toggle('active');
+            toggleBtn.setAttribute('aria-expanded', isExpanded);
+        }
+
+        // Animation au défilement
+        document.addEventListener('DOMContentLoaded', function() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.feature-card, .testimonial').forEach(el => {
+                observer.observe(el);
+            });
+        });
+    </script>
+
+</body>
+</html>

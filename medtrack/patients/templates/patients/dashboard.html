@@ -1,0 +1,728 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Tableau de Bord Patient | MedTrack</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'patients/css/dashboard.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <style>
+      /* Message flash stylé et responsive */
+      .messages#flash-messages {
+        position: fixed;
+        top: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 90vw;
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 0;
+        list-style: none;
+      }
+      .messages#flash-messages li {
+        background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+        color: #fff;
+        font-weight: 500;
+        font-size: 1.1em;
+        border-radius: 12px;
+        box-shadow: 0 4px 24px rgba(0,114,255,0.13);
+        padding: 18px 28px;
+        margin: 0 auto;
+        text-align: center;
+        letter-spacing: 0.5px;
+        animation: fadeInScale 0.5s;
+        width: 100%;
+    }
+      @keyframes fadeInScale {
+        from { opacity: 0; transform: scale(0.9);}
+        to   { opacity: 1; transform: scale(1);}
+      }
+      @media (max-width: 600px) {
+        .messages#flash-messages {
+          top: 20px;
+          max-width: 95vw;
+        }
+        .messages#flash-messages li {
+          font-size: 1em;
+          padding: 12px 10px;
+        }
+      }
+    </style>
+</head>
+<body>
+    {% if messages %}
+      <ul class="messages" id="flash-messages">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+      <script>
+        setTimeout(function() {
+          const msg = document.getElementById('flash-messages');
+          if (msg) msg.style.display = 'none';
+        }, 4000);
+      </script>
+    {% endif %}
+    <!-- En-tête -->
+    <header class="main-header">
+        <div class="logo-container">
+            <div class="logo">
+                <i class="fas fa-heartbeat"></i>
+            </div>
+            <div class="brand">MedTrack</div>
+        </div>
+        
+        <div class="user-info">
+            <div class="user-avatar">{{ request.user.first_name|slice:":1" }}</div>
+            <a href="{% url 'accounts:logout_user' %}" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Déconnexion
+            </a>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="dashboard-nav">
+        <a href="{% url 'patients:dashboard' %}" class="nav-item">
+            <i class="fas fa-home"></i> Accueil
+        </a>
+        <a href="{% url 'patients:profile' %}" class="nav-item">
+            <i class="fas fa-user"></i> Profil
+        </a>
+        <a href="{% url 'patients:historique' %}" class="nav-item">
+            <i class="fas fa-history"></i> Historique
+        </a>
+        <a href="{% url 'patients:medecins' %}" class="nav-item">
+            <i class="fas fa-user-md"></i> Médecin
+        </a>
+        <a href="{% url 'patients:traitements' %}" class="nav-item">
+            <i class="fas fa-pills"></i> Traitements
+        </a>
+        <a href="{% url 'patients:documents' %}" class="nav-item">
+            <i class="fas fa-file-medical"></i> Documents
+        </a>
+    </nav>
+
+    <!-- Contenu principal -->
+    <div class="dashboard-container">
+        <!-- Colonne principale -->
+        <div class="main-column">
+            <!-- Section de bienvenue -->
+            <section class="welcome-section">
+                <h1>Bonjour, {{ request.user.first_name }} !</h1>
+                <p class="welcome-text">
+                    Bienvenue sur votre tableau de bord MedTrack. Vous pouvez suivre vos indicateurs de santé, 
+                    gérer vos rendez-vous, et consulter votre historique médical.
+                </p>
+                <div class="date-info">
+                    <i class="fas fa-calendar-day"></i>
+                    <span id="current-date"></span>
+                </div>
+            </section>
+
+            <!-- Statistiques rapides -->
+            <div class="quick-stats">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon icon-heart">
+                            <i class="fas fa-heartbeat"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="latest-bp">--/--</div>
+                    <div class="stat-label">Dernière tension</div>
+                    <div class="trend" id="bp-trend">
+                        <i class="fas fa-info-circle"></i> Chargement...
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon icon-calendar">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="next-appointment-day">--</div>
+                    <div class="stat-label">Prochain RDV</div>
+                    <div class="trend" id="appointment-time">
+                        <i class="fas fa-clock"></i> --
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon icon-meds">
+                            <i class="fas fa-pills"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="active-treatments">--</div>
+                    <div class="stat-label">Traitements actifs</div>
+                    <div class="trend" id="treatments-info">
+                        <i class="fas fa-info-circle"></i> --
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon icon-doctor">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="unread-alerts">--</div>
+                    <div class="stat-label">Alertes non lues</div>
+                    <div class="trend up" id="alerts-trend">
+                        <i class="fas fa-bell"></i> --
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graphique de santé -->
+            <section class="health-graph">
+                <div class="graph-header">
+                    <div class="graph-title">
+                        <h2><i class="fas fa-heartbeat"></i> Suivi de Pression Artérielle</h2>
+                        <p id="graph-period">7 derniers jours</p>
+                    </div>
+                    <div class="graph-controls">
+                        <button class="graph-btn active" data-days="7">7j</button>
+                        <button class="graph-btn" data-days="15">15j</button>
+                        <button class="graph-btn" data-days="30">30j</button>
+                    </div>
+                </div>
+                <div class="graph-container" style="height:320px;">
+                    <canvas id="bloodPressureChart"></canvas>
+                </div>
+                <div class="graph-footer">
+                    <div class="current-values">
+                        <div class="value-box systolic">
+                            <span class="label">Max</span>
+                            <span class="value" id="current-systolic">--</span>
+                            <span class="unit">mmHg</span>
+                        </div>
+                        <div class="value-box diastolic">
+                            <span class="label">Min</span>
+                            <span class="value" id="current-diastolic">--</span>
+                            <span class="unit">mmHg</span>
+                        </div>
+                    </div>
+                    <div class="graph-legend">
+                        <div class="legend-item">
+                            <span class="legend-color systolic"></span>
+                            <span>Systolique</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color diastolic"></span>
+                            <span>Diastolique</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- Actions rapides -->
+            <section class="quick-actions">
+                <div class="section-title">
+                    <h2>Actions rapides</h2>
+                </div>
+                
+                <div class="actions-grid">
+                    <a href="#" class="action-btn">
+                        <i class="fas fa-plus-circle"></i>
+                        <span class="action-label">Déclarer un symptôme</span>
+                    </a>
+                    
+                    <a href="#" class="action-btn">
+                        <i class="fas fa-history"></i>
+                        <span class="action-label">Voir mon historique</span>
+                    </a>
+                    
+                    <a href="#" class="action-btn">
+                        <i class="fas fa-user-md"></i>
+                        <span class="action-label">Contacter mon médecin</span>
+                    </a>
+                    
+                    <a href="#" class="action-btn">
+                        <i class="fas fa-file-medical"></i>
+                        <span class="action-label">Ajouter un document</span>
+                    </a>
+                </div>
+            </section>
+        </div>
+
+        <!-- Colonne latérale -->
+        <div class="sidebar-column">
+            <!-- Prochain rendez-vous -->
+            <section class="appointment-card" id="appointment-card">
+                <div class="section-title">
+                    <h2>Prochain rendez-vous</h2>
+                </div>
+                
+                <div class="appointment-info">
+                    <div class="doctor-avatar" id="doctor-avatar">--</div>
+                    <div class="doctor-info">
+                        <h3 id="doctor-name">Aucun RDV programmé</h3>
+                        <p id="doctor-specialty"></p>
+                    </div>
+                </div>
+                
+                <div class="appointment-details" id="appointment-details" style="display: none;">
+                    <div class="detail-item">
+                        <span class="detail-label">Date</span>
+                        <span class="detail-value" id="appointment-date">--</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Heure</span>
+                        <span class="detail-value" id="appointment-time-detail">--</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Lieu</span>
+                        <span class="detail-value" id="appointment-location">--</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Motif</span>
+                        <span class="detail-value" id="appointment-reason">--</span>
+                    </div>
+                </div>
+                
+                <div class="appointment-actions" id="appointment-actions" style="display: none;">
+                    <button class="appt-btn btn-primary" id="confirm-appointment">
+                        <i class="fas fa-check-circle"></i> Confirmer
+                    </button>
+                    <button class="appt-btn btn-outline" id="reschedule-appointment">
+                        <i class="fas fa-calendar-alt"></i> Reporter
+                    </button>
+                </div>
+                
+                <div id="no-appointment" class="no-appointment-message">
+                    <p>Vous n'avez aucun rendez-vous programmé.</p>
+                    <a href="{% url 'patients:RDV' %}" class="btn-rdv-fixe">
+                        <i class="fas fa-plus"></i> Prendre RDV
+                    </a>
+                </div>
+            </section>
+
+            <!-- Alertes -->
+            <section class="alerts-card">
+                <div class="section-title">
+                    <h2>Alertes récentes</h2>
+                    <a href="#" class="view-all">Voir tout</a>
+                </div>
+                
+                <div class="alerts-list" id="alerts-list">
+                    <div class="alert-item loading-alert">
+                        <i class="fas fa-spinner fa-spin"></i> Chargement des alertes...
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Pied de page -->
+    <footer>
+        &copy; <span id="current-year"></span> MedTrack. Tous droits réservés.
+    </footer>
+
+    <script>
+        // Initialisation de la date
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('current-date').textContent = new Date().toLocaleDateString('fr-FR', dateOptions);
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        
+        // Configuration globale
+        
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    // Éléments du DOM
+    const elements = {
+        latestBP: document.getElementById('latest-bp'),
+        bpTrend: document.getElementById('bp-trend'),
+        nextAppointmentDay: document.getElementById('next-appointment-day'),
+        appointmentTime: document.getElementById('appointment-time'),
+        activeTreatments: document.getElementById('active-treatments'),
+        treatmentsInfo: document.getElementById('treatments-info'),
+        unreadAlerts: document.getElementById('unread-alerts'),
+        alertsTrend: document.getElementById('alerts-trend'),
+        alertsList: document.getElementById('alerts-list'),
+        appointmentCard: document.getElementById('appointment-card'),
+        noAppointment: document.getElementById('no-appointment'),
+        appointmentDetails: document.getElementById('appointment-details'),
+        appointmentActions: document.getElementById('appointment-actions'),
+        doctorAvatar: document.getElementById('doctor-avatar'),
+        doctorName: document.getElementById('doctor-name'),
+        doctorSpecialty: document.getElementById('doctor-specialty'),
+        appointmentDate: document.getElementById('appointment-date'),
+        appointmentTimeDetail: document.getElementById('appointment-time-detail'),
+        appointmentLocation: document.getElementById('appointment-location'),
+        appointmentReason: document.getElementById('appointment-reason'),
+        confirmAppointment: document.getElementById('confirm-appointment'),
+        rescheduleAppointment: document.getElementById('reschedule-appointment')
+    };
+
+    // Initialisation du graphique
+    let bpChart;
+    function initBPChart() {
+        const ctx = document.getElementById('bpChart').getContext('2d');
+        bpChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Systolique',
+                        data: [],
+                        borderColor: '#FF6384',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Diastolique',
+                        data: [],
+                        borderColor: '#36A2EB',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        tension: 0.4,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ${context.dataset.label}: ${context.raw};
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        suggestedMin: 50,
+                        suggestedMax: 200
+                    }
+                }
+            }
+        });
+    }
+
+    // Charger les données de tension artérielle
+   
+    function loadBPData(days = 7) {
+        fetch(${config.api.bloodPressure}?days=${days})
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('graph-period').textContent = 
+                    days === 7 ? '7 derniers jours' : 
+                    days === 30 ? '30 derniers jours' : '3 derniers mois';
+                
+                bpChart.data.labels = data.dates;
+                bpChart.data.datasets[0].data = data.systolic;
+                bpChart.data.datasets[1].data = data.diastolic;
+                bpChart.update();
+            });
+    }
+
+    // Gestion des boutons de période
+    function setupPeriodButtons() {
+        document.querySelectorAll('.graph-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const days = parseInt(this.dataset.days);
+                document.querySelectorAll('.graph-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                loadBPData(days);
+            });
+        });
+    }
+
+    // Charger les dernières données de tension
+    function loadLatestBP() {
+        fetch(config.api.latestBP)
+            .then(response => response.json())
+            .then(data => {
+                if (data.systolic && data.diastolic) {
+                    elements.latestBP.textContent = ${data.systolic}/${data.diastolic};
+                    
+                    // Calcul de la tendance (simplifié)
+                    if (data.trend === 'up') {
+                        elements.bpTrend.innerHTML = '<i class="fas fa-arrow-up"></i> Hausse récente';
+                        elements.bpTrend.className = 'trend up';
+                    } else if (data.trend === 'down') {
+                        elements.bpTrend.innerHTML = '<i class="fas fa-arrow-down"></i> Baisse récente';
+                        elements.bpTrend.className = 'trend down';
+                    } else {
+                        elements.bpTrend.innerHTML = '<i class="fas fa-equals"></i> Stable';
+                        elements.bpTrend.className = 'trend';
+                    }
+                }
+            });
+    }
+
+    // Charger le prochain rendez-vous
+    function loadNextAppointment() {
+        fetch(config.api.appointments)
+            .then(response => response.json())
+            .then(data => {
+                if (data.date) {
+                    const appointmentDate = new Date(data.date);
+                    const now = new Date();
+                    const diffDays = Math.floor((appointmentDate - now) / (1000 * 60 * 60 * 24));
+                    
+                    elements.nextAppointmentDay.textContent = diffDays === 0 ? 'Aujourd\'hui' : 
+                                                             diffDays === 1 ? 'Demain' : 
+                                                             Dans ${diffDays} jours;
+                    
+                    elements.appointmentTime.innerHTML = <i class="fas fa-clock"></i> ${data.time};
+                    
+                    // Afficher les détails du RDV
+                    elements.noAppointment.style.display = 'none';
+                    elements.appointmentDetails.style.display = 'block';
+                    elements.appointmentActions.style.display = 'flex';
+                    
+                    elements.doctorAvatar.textContent = data.doctor_initials;
+                    elements.doctorName.textContent = data.doctor_name;
+                    elements.doctorSpecialty.textContent = data.specialty;
+                    elements.appointmentDate.textContent = data.formatted_date;
+                    elements.appointmentTimeDetail.textContent = data.time;
+                    elements.appointmentLocation.textContent = data.location;
+                    elements.appointmentReason.textContent = data.reason;
+                    
+                    // Gestion des boutons
+                    elements.confirmAppointment.onclick = () => confirmAppointment(data.id);
+                    elements.rescheduleAppointment.onclick = () => rescheduleAppointment(data.id);
+                } else {
+                    elements.nextAppointmentDay.textContent = '--';
+                    elements.appointmentTime.textContent = '--';
+                    elements.noAppointment.style.display = 'block';
+                    elements.appointmentDetails.style.display = 'none';
+                    elements.appointmentActions.style.display = 'none';
+                }
+            });
+    }
+
+    // Confirmer un rendez-vous
+    function confirmAppointment(appointmentId) {
+        fetch(/api/appointments/${appointmentId}/confirm/, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': config.csrfToken,
+                'Content-Type': 'application/json'
+            }
+        }).then(response => {
+            if (response.ok) {
+                showFlashMessage('Rendez-vous confirmé avec succès', 'success');
+                loadNextAppointment();
+            }
+        });
+    }
+
+    // Reporter un rendez-vous
+    function rescheduleAppointment(appointmentId) {
+        // Implémentez la logique de report ici
+        console.log('Report du RDV', appointmentId);
+    }
+
+    // Charger les traitements actifs
+    function loadActiveTreatments() {
+        fetch(config.api.treatments)
+            .then(response => response.json())
+            .then(data => {
+                elements.activeTreatments.textContent = data.count;
+                if (data.next_dose) {
+                    elements.treatmentsInfo.innerHTML = <i class="fas fa-clock"></i> Prochaine dose: ${data.next_dose};
+                } else {
+                    elements.treatmentsInfo.textContent = 'Aucune dose aujourd\'hui';
+                }
+            });
+    }
+
+    // Charger les alertes récentes
+    function loadRecentAlerts() {
+        fetch(config.api.alerts)
+            .then(response => response.json())
+            .then(data => {
+                elements.unreadAlerts.textContent = data.unread_count;
+                
+                if (data.alerts.length > 0) {
+                    let alertsHTML = '';
+                    data.alerts.forEach(alert => {
+                        alertsHTML += `
+                        <div class="alert-item" data-alert-id="${alert.id}">
+                            <div class="alert-icon" style="background: ${alert.color};">
+                                <i class="${alert.icon}"></i>
+                            </div>
+                            <div class="alert-info">
+                                <h4>${alert.title}</h4>
+                                <p>${alert.message}</p>
+                                <div class="alert-time">${alert.time}</div>
+                            </div>
+                            <button class="mark-read" data-alert-id="${alert.id}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>`;
+                    });
+                    
+                    elements.alertsList.innerHTML = alertsHTML;
+                    
+                    // Gestion du marquage comme lu
+                    document.querySelectorAll('.mark-read').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const alertId = this.dataset.alertId;
+                            markAlertAsRead(alertId);
+                        });
+                    });
+                } else {
+                    elements.alertsList.innerHTML = '<div class="no-alerts">Aucune alerte récente</div>';
+                }
+            });
+    }
+
+    // Marquer une alerte comme lue
+    function markAlertAsRead(alertId) {
+        fetch(/api/alerts/${alertId}/mark-read/, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': config.csrfToken,
+                'Content-Type': 'application/json'
+            }
+        }).then(response => {
+            if (response.ok) {
+                document.querySelector(.alert-item[data-alert-id="${alertId}"]).remove();
+                loadRecentAlerts(); // Rafraîchir le compteur
+            }
+        });
+    }
+
+    // Afficher un message flash
+    function showFlashMessage(message, type = 'info') {
+        const flashContainer = document.createElement('div');
+        flashContainer.className = flash-message ${type};
+        flashContainer.textContent = message;
+        document.body.appendChild(flashContainer);
+        
+        setTimeout(() => {
+            flashContainer.remove();
+        }, 5000);
+    }
+
+    // Initialisation
+    initBPChart();
+    setupPeriodButtons();
+    loadLatestBP();
+    loadNextAppointment();
+    loadActiveTreatments();
+    loadRecentAlerts();
+    loadBPData(7); // Charger les 7 derniers jours par défaut
+
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function generateSimulatedData(days) {
+        const labels = [];
+        const systolic = [];
+        const diastolic = [];
+        const today = new Date();
+        for (let i = days-1; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(today.getDate() - i);
+            labels.push(date.toLocaleDateString('fr-FR', { weekday: 'short' }));
+            const baseSystolic = 120 + Math.floor(Math.random() * 10);
+            const baseDiastolic = 75 + Math.floor(Math.random() * 10);
+            systolic.push(baseSystolic + (Math.random() > 0.5 ? 2 : -2));
+            diastolic.push(baseDiastolic + (Math.random() > 0.5 ? 1 : -1));
+        }
+        return { labels, systolic, diastolic };
+    }
+    const ctx = document.getElementById('bloodPressureChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: 'Systolique',
+                    data: [],
+                    borderColor: '#FF6384',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: '#FF6384',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                },
+                {
+                    label: 'Diastolique',
+                    data: [],
+                    borderColor: '#36A2EB',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: '#36A2EB',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.raw + ' mmHg';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    min: 60,
+                    max: 150,
+                    ticks: { stepSize: 10 },
+                    grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                    title: { display: true, text: 'mmHg' }
+                },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+    function loadData(days) {
+        const data = generateSimulatedData(days);
+        chart.data.labels = data.labels;
+        chart.data.datasets[0].data = data.systolic;
+        chart.data.datasets[1].data = data.diastolic;
+        chart.update();
+        document.getElementById('current-systolic').textContent = data.systolic[data.systolic.length - 1];
+        document.getElementById('current-diastolic').textContent = data.diastolic[data.diastolic.length - 1];
+        document.getElementById('graph-period').textContent = 
+            days === 7 ? '7 derniers jours' :
+            days === 15 ? '15 derniers jours' : '30 derniers jours';
+    }
+    document.querySelectorAll('.graph-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const days = parseInt(this.dataset.days);
+            document.querySelectorAll('.graph-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            loadData(days);
+        });
+    });
+    loadData(7);
+});
+</script>
+</body>
+</html>

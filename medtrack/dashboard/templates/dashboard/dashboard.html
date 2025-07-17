@@ -1,0 +1,101 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>MedTrack – Dashboard</title>
+ <link rel="stylesheet" href="{% static 'dashboard/css/dashboard-styled.css' %}">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <div class="wrapper">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <img src="https://cdn-icons-png.flaticon.com/512/3774/3774299.png" alt="MedTrack" class="logo">
+        <h2>MedTrack</h2>
+      </div>
+      <nav class="sidebar-menu">
+        <a href="#" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+        <a href="#"><i class="fas fa-user-injured"></i> Patients</a>
+        <a href="#"><i class="fas fa-bell"></i> Alertes</a>
+      </nav>
+    </aside>
+
+    <main class="content">
+      <header class="topbar">
+        <h1>Dashboard</h1>
+        <div class="user-info">
+          <img src="https://cdn-icons-png.flaticon.com/512/706/706830.png" alt="Admin">
+          <span>Dr. Admin</span>
+        </div>
+      </header>
+
+      <section class="cards">
+        <div class="card">
+          <div class="card-icon red"><i class="fas fa-bell"></i></div>
+          <div class="card-content">
+            <p class="card-title">Alertes</p>
+            <p class="card-value">42</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon blue"><i class="fas fa-users"></i></div>
+          <div class="card-content">
+            <p class="card-title">Patients</p>
+            <p class="card-value">128</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-icon green"><i class="fas fa-chart-line"></i></div>
+          <div class="card-content">
+            <p class="card-title">Critiques</p>
+            <p class="card-value">12%</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="chart">
+        <canvas id="lineChart"></canvas>
+      </section>
+
+      <section class="table-section">
+        <h2>Derniers patients</h2>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr><th>Nom</th><th>Âge</th><th>Derniers symptômes</th><th>Date</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Jean Dupont</td><td>34</td><td>Fièvre, toux</td><td>13 Juin 2025</td>
+              </tr>
+              <tr>
+                <td>Awa Koné</td><td>28</td><td>Maux de tête</td><td>12 Juin 2025</td>
+              </tr>
+              <tr>
+                <td>Lucien Togo</td><td>41</td><td>Vertiges</td><td>11 Juin 2025</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    new Chart(document.getElementById('lineChart'), {
+      type: 'line',
+      data: {
+        labels: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
+        datasets: [{
+          label: 'Alertes / semaine',
+          data: [5, 8, 6, 12, 7, 4, 9],
+          borderColor: '#3498db',
+          backgroundColor: 'rgba(52,152,219,0.2)'
+        }]
+      }
+    });
+  </script>
+</body>
+</html>
